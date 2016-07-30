@@ -2,7 +2,7 @@
 // else from both vera and a local physical button (connected between digital
 // pin 3 and GND).
 // This node also works as a repeader for other nodes
-
+#define MY_DEBUG
 #define MY_RADIO_NRF24
 #include <MySensors.h>
 #include <SPI.h>
@@ -18,9 +18,9 @@
 #define RELAY_PIN_2  5 // Arduino Digital I/O pin number for relay
 #define BUTTON_PIN   4 // Arduino Digital I/O pin number for button 
 #define BUTTON_PIN_2 7
-#define CHILD_ID_3 13
-#define CHILD_ID_2 12
-#define CHILD_ID 11 // Id of the sensor child
+#define CHILD_DSB_ID 13
+#define CHILD_RELAY_ID 12
+#define CHILD_PIR_ID 11 // Id of the sensor child
 #define RELAY_ON 1
 #define RELAY_OFF 0
 
@@ -31,17 +31,22 @@ Bounce debouncer2 = Bounce();
 int oldValue2=0;
 bool state2;
 
-MyMessage msg(CHILD_ID, V_TRIPPED);
-MyMessage msg2(CHILD_ID_2,V_LIGHT);
-MyMessage msg3(CHILD_ID_3,V_TEMP);
+MyMessage msg(CHILD_PIR_ID, V_TRIPPED);
+MyMessage msg2(CHILD_RELAY_ID, V_LIGHT);
+MyMessage msg3(CHILD_DSB_ID, V_TEMP);
 
 // Setup a oneWire instance to communicate with any OneWire devices 
 // (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire); // Pass the oneWire reference to Dallas Temperature. 
 
+void before() {
+  Serial.begin(9600);
+  Serial.println("App initialization started");  
+}
+
 void setup()  
-{  
+{
   // Startup up the OneWire library
   sensors.begin();
   // requestTemperatures() will not block current thread
@@ -60,18 +65,18 @@ void setup()
   pinMode(RELAY_PIN_2, OUTPUT);   
       
   // Set relay to last known state (using eeprom storage) 
-  state2 = loadState(CHILD_ID_2);
+  state2 = loadState(CHILD_RELAY_ID);
   digitalWrite(RELAY_PIN_2, state2?RELAY_ON:RELAY_OFF);
-  
+  Serial.println("App initialized");
 }
 
 void presentation() {
   // Send the sketch version information to the gateway and Controller
-  sendSketchInfo("PIR with Relay & Button", "0.1");
+  sendSketchInfo("PIR with Relay & Button", "0.2");
   // Register all sensors to gw (they will be created as child devices)
-  present(CHILD_ID, S_MOTION);
-  present(CHILD_ID_2, S_LIGHT);
-  present(CHILD_ID_3, S_TEMP);
+  present(CHILD_PIR_ID, S_MOTION);
+  present(CHILD_RELAY_ID, S_LIGHT);
+  present(CHILD_DSB_ID, S_TEMP);
  
 }
 
@@ -105,6 +110,8 @@ void loop()
   if (temperature != -127.00 && temperature != 85.00) {
           // Send in the new temperature
       send(msg3.set(temperature,1));
+      Serial.print("Sent temperature: ");
+      Serial.println(temperature);
   }
 } 
  
@@ -114,25 +121,20 @@ void incomingMessage(const MyMessage &message) {
      Serial.println("This is an ack from gateway");
   }
 
-  if (message.type == V_LIGHT && message.sensor == 11) {
-//     // Change relay state
-//     state = message.getBool();
-//     digitalWrite(RELAY_PIN, state?RELAY_ON:RELAY_OFF);
-//     // Store state in eeprom
-//     saveState(CHILD_ID, state);
-   }
-  else if(message.type == V_LIGHT && message.sensor == 12){  
-    
+  if(message.type == V_LIGHT && message.sensor == CHILD_RELAY_ID){   
      state2 = message.getBool();
      digitalWrite(RELAY_PIN_2, state2?RELAY_ON:RELAY_OFF);
      // Store state in eeprom
-     saveState(CHILD_ID_2, state2);
-    
+     saveState(CHILD_RELAY_ID, state2);    
     
      // Write some debug info
      Serial.print("Incoming change for sensor:");
      Serial.print(message.sensor);
      Serial.print(", New status: ");
      Serial.println(message.getBool());
-   } 
+   }
+   else {
+    Serial.print("Unhandled message: ");
+    Serial.println(message.sensor);
+   }
 }
