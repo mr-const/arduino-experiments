@@ -3,8 +3,8 @@
 // pin 3 and GND).
 // This node also works as a repeader for other nodes
 #define MY_DEBUG
-//#define MY_RADIO_NRF24
-//#include <MySensors.h>
+#define MY_RADIO_NRF24
+#include <MySensors.h>
 #include <SPI.h>
 #include <Bounce2.h>
 #include <OneWire.h>
@@ -28,16 +28,13 @@
 
 #define BUILTIN_LED 13
 
-Bounce debouncer = Bounce();
-int oldValue = 0;
-bool state;
 Bounce debouncer2 = Bounce();
 int oldValue2 = 0;
 bool state2;
 
-//MyMessage msg(CHILD_PIR_ID, V_TRIPPED);
-//MyMessage msg2(CHILD_RELAY_ID, V_LIGHT);
-//MyMessage msg3(CHILD_DSB_ID, V_TEMP);
+MyMessage msgTripped(CHILD_PIR_ID, V_TRIPPED);
+MyMessage msg2(CHILD_RELAY_ID, V_LIGHT);
+MyMessage msg3(CHILD_DSB_ID, V_TEMP);
 
 // Setup a oneWire instance to communicate with any OneWire devices 
 // (not just Maxim/Dallas temperature ICs)
@@ -72,7 +69,7 @@ void setup()
 	pinMode(RELAY_PIN, OUTPUT);
 
 	// Set relay to last known state (using eeprom storage) 
-  //  state2 = loadState(CHILD_RELAY_ID);
+	state2 = loadState(CHILD_RELAY_ID);
 	digitalWrite(RELAY_PIN, state2 ? RELAY_ON : RELAY_OFF);
 	Serial.println("App initialized");
 
@@ -85,35 +82,28 @@ void setup()
 	Pir::setPirEventHandler(&onPirEvent);
 }
 
-//void presentation() {
-//  // Send the sketch version information to the gateway and Controller
-//  sendSketchInfo("PIR with Relay & Button", "0.2");
-//  // Register all sensors to gw (they will be created as child devices)
-//  present(CHILD_PIR_ID, S_MOTION);
-//  present(CHILD_RELAY_ID, S_LIGHT);
-//  present(CHILD_DSB_ID, S_TEMP);
-// 
-//}
+void presentation() {
+	// Send the sketch version information to the gateway and Controller
+	sendSketchInfo("PIR with Relay & Button", "0.2");
+	// Register all sensors to gw (they will be created as child devices)
+	present(CHILD_PIR_ID, S_MOTION);
+	present(CHILD_RELAY_ID, S_LIGHT);
+	present(CHILD_DSB_ID, S_TEMP);
+
+}
 
 void loop()
 {
 	static float prevTemp = 0;
 
 	Pir::loop();
-	debouncer.update();
 	debouncer2.update();
 	// Get the update value
-	int value = debouncer.read();
 	int value2 = debouncer2.read();
 
-	//  if (value != oldValue) {
-	//      send(msg.set(state?false:true), true); // Send new state and request ack back
-	//  }
-	oldValue = value;
-
-	//  if (value2 != oldValue2) {
-	//      send(msg2.set(state2?false:true), true); // Send new state and request ack back
-	//  }
+	if (value2 != oldValue2) {
+		send(msg2.set(state2 ? false : true), true); // Send new state and request ack back
+	}
 	oldValue2 = value2;
 
 	// Fetch temperatures from Dallas sensors
@@ -123,42 +113,46 @@ void loop()
 
 	if (temperature != -127.00f && temperature != 85.00f && prevTemp != temperature) {
 		// Send in the new temperature
-//      send(msg3.set(temperature,1));
+		send(msg3.set(temperature, 1));
 		Serial.print("Sent temperature: ");
 		Serial.println(temperature);
 		prevTemp = temperature;
 	}
 }
 
-//void incomingMessage(const MyMessage &message) {
-//  // We only expect one type of message from controller. But we better check anyway.
-//  if (message.isAck()) {
-//     Serial.println("This is an ack from gateway");
-//  }
-//
-//  if(message.type == V_LIGHT && message.sensor == CHILD_RELAY_ID){   
-//     state2 = message.getBool();
-//     digitalWrite(RELAY_PIN, state2?RELAY_ON:RELAY_OFF);
-//     // Store state in eeprom
-//     saveState(CHILD_RELAY_ID, state2);    
-//    
-//     // Write some debug info
-//     Serial.print("Incoming change for sensor:");
-//     Serial.print(message.sensor);
-//     Serial.print(", New status: ");
-//     Serial.println(message.getBool());
-//   }
-//   else {
-//    Serial.print("Unhandled message: ");
-//    Serial.println(message.sensor);
-//   }
-//}
+void incomingMessage(const MyMessage &message) {
+	// We only expect one type of message from controller. But we better check anyway.
+	if (message.isAck()) {
+		Serial.println("This is an ack from gateway");
+	}
+
+	if (message.type == V_LIGHT && message.sensor == CHILD_RELAY_ID) {
+		state2 = message.getBool();
+		digitalWrite(RELAY_PIN, state2 ? RELAY_ON : RELAY_OFF);
+		// Store state in eeprom
+		saveState(CHILD_RELAY_ID, state2);
+
+		// Write some debug info
+		Serial.print("Incoming change for sensor:");
+		Serial.print(message.sensor);
+		Serial.print(", New status: ");
+		Serial.println(message.getBool());
+	}
+	else {
+		Serial.print("Unhandled message: ");
+		Serial.println(message.sensor);
+	}
+}
 
 void onPirEvent(bool tripped) {
 	digitalWrite(LED_BUILTIN, tripped ? HIGH : LOW);
 	Serial.print("PIR ");
-	if (tripped)
+	if (tripped) {
 		Serial.println("tripped");
-	else
+		send(msgTripped.set(1));
+	}
+	else {
 		Serial.println("armed");
+		send(msgTripped.set(0));
+	}
 }

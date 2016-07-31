@@ -63,7 +63,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src;C:\Users\konst\Documents\Arduino\libraries\Bounce2;C:\Users\konst\Documents\Arduino\libraries\OneWire;C:\Users\konst\Documents\Arduino\libraries\DallasTemperature;C:\Users\konst\Documents\Arduino\libraries\Bounce2\utility;C:\Users\konst\Documents\Arduino\libraries\DallasTemperature\utility;C:\Users\konst\Documents\Arduino\libraries\OneWire\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src\utility;C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;C:\Users\konst\Documents\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;F:\sources\arduino\relay-nrf\RelayPirWithButtonActuators;C:\Program Files (x86)\Arduino\hardware\tools\avr/avr/include/;C:\Program Files (x86)\Arduino\hardware\tools\avr//avr/include/avr/;C:\Program Files (x86)\Arduino\hardware\tools\avr/lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\konst\Documents\Arduino\libraries\MySensors;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src;C:\Users\konst\Documents\Arduino\libraries\Bounce2;C:\Users\konst\Documents\Arduino\libraries\OneWire;C:\Users\konst\Documents\Arduino\libraries\DallasTemperature;C:\Users\konst\Documents\Arduino\libraries\Bounce2\utility;C:\Users\konst\Documents\Arduino\libraries\DallasTemperature\utility;C:\Users\konst\Documents\Arduino\libraries\MySensors\utility;C:\Users\konst\Documents\Arduino\libraries\OneWire\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src\utility;C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;C:\Users\konst\Documents\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;F:\sources\arduino\relay-nrf\RelayPirWithButtonActuators;C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;C:\Users\konst\Documents\Arduino\libraries\MySensors;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src;C:\Users\konst\Documents\Arduino\libraries\Bounce2;C:\Users\konst\Documents\Arduino\libraries\OneWire;C:\Users\konst\Documents\Arduino\libraries\DallasTemperature;C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\uhfvm3ew.bct\Micro Platforms\default\debuggers;C:\Users\konst\Documents\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\tools\avr/avr/include/;C:\Program Files (x86)\Arduino\hardware\tools\avr//avr/include/avr/;C:\Program Files (x86)\Arduino\hardware\tools\avr/lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>F:\sources\arduino\relay-nrf\RelayPirWithButtonActuators\__vm\.RelayPirWithButtonActuators.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;F_CPU=16000000L;ARDUINO=10609;ARDUINO_AVR_PRO;ARDUINO_ARCH_AVR;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -83,7 +83,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\pir.h" />
     <ClInclude Include="__vm\.RelayPirWithButtonActuators.vsarduino.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\pir.cpp" />
   </ItemGroup>
   <PropertyGroup>
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
