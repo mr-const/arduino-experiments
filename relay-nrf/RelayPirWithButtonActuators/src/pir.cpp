@@ -6,6 +6,7 @@
 uint8_t Pir::mSignalPin;
 bool Pir::mPirHigh = false;
 bool Pir::mPirPrev = false;
+PirEventHandler Pir::mEventHandler = nullptr;
 
 
 void Pir::init(uint8_t signalPin)
@@ -17,26 +18,17 @@ void Pir::init(uint8_t signalPin)
 
 void Pir::loop() {
 	if (mPirHigh != mPirPrev) {
-		if (mPirHigh)
-			Serial.println("PIR detected");
-		else
-			Serial.println("PIR lost");
+		if (mEventHandler)
+			mEventHandler(mPirHigh);
 	}
-
 	mPirPrev = mPirHigh;
 }
 
-void Pir::onPirEvent() {
+void Pir::setPirEventHandler(PirEventHandler handler)
+{
+	mEventHandler = handler;
+}
 
-	int pirSig = digitalRead(mSignalPin);
-	if (pirSig == HIGH) {
-		digitalWrite(LED_BUILTIN, HIGH);
-		Serial.println("PIR Tripped");
-		mPirHigh = true;
-	}
-	else {
-		digitalWrite(LED_BUILTIN, LOW);
-		Serial.println("PIR Armed");
-		mPirHigh = false;
-	}
+void Pir::onPirEvent() {
+	mPirHigh = digitalRead(mSignalPin) == HIGH;
 }
