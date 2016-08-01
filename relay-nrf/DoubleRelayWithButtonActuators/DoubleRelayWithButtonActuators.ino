@@ -7,11 +7,16 @@
 #include <MySensors.h>
 #include <SPI.h>
 #include <Bounce2.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 #define RELAY_PIN    3  // Arduino Digital I/O pin number for relay 
 #define RELAY_PIN_2  5
 #define BUTTON_PIN   4  // Arduino Digital I/O pin number for button 
 #define BUTTON_PIN_2 7
+#define ONE_WIRE_BUS 8
+
+#define CHILD_DSB_ID 13
 #define CHILD_ID_2 12
 #define CHILD_ID 11 // Id of the sensor child
 #define RELAY_ON 1
@@ -26,6 +31,11 @@ bool state2;
 
 MyMessage msg(CHILD_ID, V_LIGHT);
 MyMessage msg2(CHILD_ID_2, V_LIGHT);
+MyMessage msgTemp(CHILD_DSB_ID, V_TEMP);
+
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire); // Pass the oneWire reference to Dallas Temperature. 
+
 
 void presentation() {
 	// Send the sketch version information to the gateway and Controller
@@ -33,10 +43,14 @@ void presentation() {
 	// Register all sensors to gw (they will be created as child devices)
 	present(CHILD_ID, S_LIGHT);
 	present(CHILD_ID_2, S_LIGHT);
+	present(CHILD_DSB_ID, S_TEMP);
 }
 
 void setup()
 {
+	sensors.begin();
+	sensors.setWaitForConversion(false);
+
 	// Setup the button
 	pinMode(BUTTON_PIN, INPUT);
 	// Activate internal pull-up
@@ -79,6 +93,8 @@ void setup()
 */
 void loop()
 {
+	static float prevTemp = 0;
+
 	debouncer.update();
 	debouncer2.update();
 	// Get the update value
@@ -94,6 +110,19 @@ void loop()
 		send(msg2.set(state2 ? false : true), true); // Send new state and request ack back
 	}
 	oldValue2 = value2;
+
+	// Fetch temperatures from Dallas sensors
+	sensors.requestTemperatures();
+	// Fetch and round temperature to one decimal
+	float temperature = static_cast<float>(static_cast<int>(sensors.getTempCByIndex(0) * 10.f)) / 10.f;
+
+	if (temperature != -127.00f && temperature != 85.00f && prevTemp != temperature) {
+		// Send in the new temperature
+		send(msgTemp.set(temperature, 1));
+		Serial.print("Sent temperature: ");
+		Serial.println(temperature);
+		prevTemp = temperature;
+	}
 }
 
 void receive(const MyMessage &message) {
