@@ -43,14 +43,8 @@ DallasTemperature sensors(&oneWire); // Pass the oneWire reference to Dallas Tem
 
 void onPirEvent(bool tripped);
 
-void before() {
-	Serial.begin(115200);
-	Serial.println("App initialization started");
-}
-
 void setup()
 {
-	before();
 	// Startup up the OneWire library
 	sensors.begin();
 	// requestTemperatures() will not block current thread
@@ -120,7 +114,7 @@ void loop()
 	}
 }
 
-void incomingMessage(const MyMessage &message) {
+void receive(const MyMessage &message) {
 	// We only expect one type of message from controller. But we better check anyway.
 	if (message.isAck()) {
 		Serial.println("This is an ack from gateway");
